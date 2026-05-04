@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <form class="card" id="form">
+    <h1>Login</h1>
+    <label for="identifier">Email or username</label>
+    <input id="identifier" name="identifier" autocomplete="username" required />
+
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required />
+
+    <button type="submit">Sign in</button>
+    <div class="msg" id="msg" style="display:none"></div>
+    <div class="links">
+      <a href="/register.html">Create account</a> &middot;
+      <a href="/forgot.html">Forgot password?</a>
+    </div>
+  </form>
+
+  <script src="/app.js"></script>
+  <script>
+    const { api, showMsg, clearMsg } = window.AuthClient;
+    const form = document.getElementById('form');
+    const msg = document.getElementById('msg');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMsg(msg);
+      const fd = new FormData(form);
+      try {
+        await api('/api/auth/login', {
+          method: 'POST',
+          body: { identifier: fd.get('identifier'), password: fd.get('password') },
+        });
+        location.href = '/dashboard.html';
+      } catch (err) {
+        showMsg(msg, err.message);
+      }
+    });
+  </script>
+</body>
+</html>

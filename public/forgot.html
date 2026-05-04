@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Forgot password</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <form class="card" id="form">
+    <h1>Forgot password</h1>
+    <p class="hint">Enter your account email to receive a reset token.</p>
+
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="email" required />
+
+    <button type="submit">Request reset token</button>
+    <div class="msg" id="msg" style="display:none"></div>
+    <div class="links">
+      <a href="/reset.html">I have a token</a> &middot;
+      <a href="/login.html">Back to login</a>
+    </div>
+  </form>
+
+  <script src="/app.js"></script>
+  <script>
+    const { api, showMsg, clearMsg } = window.AuthClient;
+    const form = document.getElementById('form');
+    const msg = document.getElementById('msg');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMsg(msg);
+      const fd = new FormData(form);
+      try {
+        const data = await api('/api/auth/forgot-password', {
+          method: 'POST',
+          body: { email: fd.get('email') },
+        });
+        let text = data.message;
+        if (data.devToken) {
+          text += `\n\n[DEV] Token: ${data.devToken}\nExpires: ${data.expiresAt}`;
+        }
+        showMsg(msg, text, 'ok');
+      } catch (err) {
+        showMsg(msg, err.message);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <form class="card" id="form">
+    <h1>Create account</h1>
+
+    <label for="username">Username</label>
+    <input id="username" name="username" autocomplete="username" required minlength="3" maxlength="32" />
+
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="email" required />
+
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="new-password" required />
+    <div class="strength"><div id="bar"></div></div>
+    <div class="hint" id="hint">Use 8+ chars with upper, lower, number, symbol.</div>
+
+    <label for="confirm">Confirm password</label>
+    <input id="confirm" name="confirm" type="password" autocomplete="new-password" required />
+
+    <button type="submit">Register</button>
+    <div class="msg" id="msg" style="display:none"></div>
+    <div class="links"><a href="/login.html">Have an account? Sign in</a></div>
+  </form>
+
+  <script src="/app.js"></script>
+  <script>
+    const { api, showMsg, clearMsg, bindStrengthMeter } = window.AuthClient;
+    const form = document.getElementById('form');
+    const msg = document.getElementById('msg');
+    bindStrengthMeter(
+      document.getElementById('password'),
+      document.getElementById('bar'),
+      document.getElementById('hint')
+    );
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMsg(msg);
+      const fd = new FormData(form);
+      const password = fd.get('password');
+      if (password !== fd.get('confirm')) {
+        return showMsg(msg, 'Passwords do not match.');
+      }
+      try {
+        await api('/api/auth/register', {
+          method: 'POST',
+          body: {
+            username: fd.get('username'),
+            email: fd.get('email'),
+            password,
+          },
+        });
+        location.href = '/dashboard.html';
+      } catch (err) {
+        showMsg(msg, err.message);
+      }
+    });
+  </script>
+</body>
+</html>

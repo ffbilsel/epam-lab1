@@ -1,23 +1,81 @@
-# epam-lab1
+# Auth System (Node.js + Express + SQLite)
 
-EPAM Lab 1 — User Authentication System.
+A self-contained user authentication system featuring:
 
-The implementation lives on the [`baseline`](https://github.com/ffbilsel/epam-lab1/tree/baseline) branch.
+- **Registration** with email, username, and strong-password validation
+- **Login** by email or username (JWT in HttpOnly cookie)
+- **Logout**
+- **Authenticated `/me`** endpoint
+- **Change password** (current password required)
+- **Forgot / reset password** flow with hashed, single-use, time-limited tokens
+- Bcrypt password hashing, rate limiting, basic timing-attack mitigation
+- Minimal HTML/CSS/JS frontend
 
-## Branches
-
-- **`main`** — landing branch (this README only).
-- **`baseline`** — Node.js + Express + SQLite authentication system with login, registration, and password management (change / forgot / reset). Includes a minimal HTML/CSS/JS frontend.
-
-## Quick start (from the `baseline` branch)
+## Setup
 
 ```powershell
-git checkout baseline
 npm install
-Copy-Item .env.example .env   # then edit JWT_SECRET
+Copy-Item .env.example .env
+# Edit .env and set a strong JWT_SECRET
 npm start
 ```
 
-Open http://localhost:3000.
+Server runs at http://localhost:3000
 
-See the README on the `baseline` branch for full API and security documentation.
+## Pages
+
+| Page | Path |
+|---|---|
+| Home | `/` |
+| Register | `/register.html` |
+| Login | `/login.html` |
+| Dashboard | `/dashboard.html` |
+| Change password | `/change-password.html` |
+| Forgot password | `/forgot.html` |
+| Reset password | `/reset.html` |
+
+## API
+
+All endpoints accept and return JSON.
+
+| Method | Path | Auth | Body |
+|---|---|---|---|
+| POST | `/api/auth/register` | – | `{ email, username, password }` |
+| POST | `/api/auth/login` | – | `{ identifier, password }` |
+| POST | `/api/auth/logout` | – | – |
+| GET  | `/api/auth/me` | cookie/Bearer | – |
+| POST | `/api/auth/change-password` | cookie/Bearer | `{ currentPassword, newPassword }` |
+| POST | `/api/auth/forgot-password` | – | `{ email }` |
+| POST | `/api/auth/reset-password` | – | `{ token, newPassword }` |
+
+### Password rules
+
+- 8–128 characters
+- Must contain lowercase, uppercase, digit, and special character
+
+### Reset token
+
+In `NODE_ENV !== 'production'`, `forgot-password` returns the raw token in the JSON response (`devToken`) so you can test without email infrastructure. In production it's only logged server-side and should be sent via email.
+
+## Security notes
+
+- Passwords stored as **bcrypt** hashes (cost 12)
+- JWTs signed with `JWT_SECRET`, served as **HttpOnly, SameSite=Lax** cookies (and `Secure` in production)
+- Reset tokens stored as **SHA-256 hashes**, single-use, and expire (default 30 min)
+- Login & sensitive endpoints **rate-limited** (20 req / 15 min per IP)
+- Login responds with a generic message on bad credentials and runs bcrypt against a dummy hash on unknown users to limit user enumeration
+- `forgot-password` always returns the same message regardless of whether the email exists
+
+## Project structure
+
+```
+.
+├── server.js              # Express bootstrap
+├── src/
+│   ├── auth.js            # Auth router (all endpoints)
+│   ├── db.js              # SQLite connection & schema
+│   ├── middleware.js      # JWT auth middleware
+│   └── validators.js      # Email/username/password validation
+├── public/                # Static frontend (HTML/CSS/JS)
+└── data/auth.sqlite       # Created at first run
+```
