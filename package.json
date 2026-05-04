@@ -1,0 +1,17 @@
+{
+  "name": "epam-lab1-auth",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Email-based authentication system (Node/Express + SQLite + React/TS).",
+  "scripts": {
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "dev": "concurrently -n SERVER,CLIENT -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "build:client": "npm --prefix client run build",
+    "start": "npm --prefix server start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
