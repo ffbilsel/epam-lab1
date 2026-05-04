@@ -1,52 +1,51 @@
-# Auth System (Node.js + Express + SQLite)
+# epam-lab1 — `baseline`
 
-A self-contained user authentication system featuring:
+Node.js + Express + SQLite authentication system with a minimal HTML/CSS/JS frontend. The most feature-complete of the implementations: register, login, logout, `/me`, change password, forgot / reset password.
 
-- **Registration** with email, username, and strong-password validation
-- **Login** by email or username (JWT in HttpOnly cookie)
-- **Logout**
-- **Authenticated `/me`** endpoint
-- **Change password** (current password required)
-- **Forgot / reset password** flow with hashed, single-use, time-limited tokens
-- Bcrypt password hashing, rate limiting, basic timing-attack mitigation
-- Minimal HTML/CSS/JS frontend
+## Stack
 
-## Setup
+- **Backend**: Node.js + Express
+- **Frontend**: Vanilla HTML/CSS/JS (served from `public/`)
+- **Database**: SQLite (`better-sqlite3`)
+- **Auth**: JWT in HttpOnly, SameSite=Lax cookie (also accepts `Authorization: Bearer`)
+- **Hashing**: bcrypt (cost 12)
+
+## Quick start
 
 ```powershell
+git checkout baseline
 npm install
-Copy-Item .env.example .env
-# Edit .env and set a strong JWT_SECRET
+Copy-Item .env.example .env   # then edit JWT_SECRET
 npm start
 ```
 
-Server runs at http://localhost:3000
+App: http://localhost:3000
 
 ## Pages
 
-| Page | Path |
-|---|---|
-| Home | `/` |
-| Register | `/register.html` |
-| Login | `/login.html` |
-| Dashboard | `/dashboard.html` |
-| Change password | `/change-password.html` |
-| Forgot password | `/forgot.html` |
-| Reset password | `/reset.html` |
+| Page              | Path                    |
+|-------------------|-------------------------|
+| Home              | `/`                     |
+| Register          | `/register.html`        |
+| Login             | `/login.html`           |
+| Dashboard         | `/dashboard.html`       |
+| Change password   | `/change-password.html` |
+| Forgot password   | `/forgot.html`          |
+| Reset password    | `/reset.html`           |
 
 ## API
 
 All endpoints accept and return JSON.
 
-| Method | Path | Auth | Body |
-|---|---|---|---|
-| POST | `/api/auth/register` | – | `{ email, username, password }` |
-| POST | `/api/auth/login` | – | `{ identifier, password }` |
-| POST | `/api/auth/logout` | – | – |
-| GET  | `/api/auth/me` | cookie/Bearer | – |
-| POST | `/api/auth/change-password` | cookie/Bearer | `{ currentPassword, newPassword }` |
-| POST | `/api/auth/forgot-password` | – | `{ email }` |
-| POST | `/api/auth/reset-password` | – | `{ token, newPassword }` |
+| Method | Path                          | Auth           | Body                                     |
+|-------:|-------------------------------|----------------|------------------------------------------|
+| POST   | `/api/auth/register`          | –              | `{ email, username, password }`          |
+| POST   | `/api/auth/login`             | –              | `{ identifier, password }`               |
+| POST   | `/api/auth/logout`            | –              | –                                        |
+| GET    | `/api/auth/me`                | cookie/Bearer  | –                                        |
+| POST   | `/api/auth/change-password`   | cookie/Bearer  | `{ currentPassword, newPassword }`       |
+| POST   | `/api/auth/forgot-password`   | –              | `{ email }`                              |
+| POST   | `/api/auth/reset-password`    | –              | `{ token, newPassword }`                 |
 
 ### Password rules
 
@@ -57,13 +56,13 @@ All endpoints accept and return JSON.
 
 In `NODE_ENV !== 'production'`, `forgot-password` returns the raw token in the JSON response (`devToken`) so you can test without email infrastructure. In production it's only logged server-side and should be sent via email.
 
-## Security notes
+## Security
 
 - Passwords stored as **bcrypt** hashes (cost 12)
-- JWTs signed with `JWT_SECRET`, served as **HttpOnly, SameSite=Lax** cookies (and `Secure` in production)
-- Reset tokens stored as **SHA-256 hashes**, single-use, and expire (default 30 min)
+- JWTs signed with `JWT_SECRET`; **HttpOnly + SameSite=Lax** cookie (and `Secure` in production)
+- Reset tokens stored as **SHA-256** hashes, single-use, expire after ~30 minutes
 - Login & sensitive endpoints **rate-limited** (20 req / 15 min per IP)
-- Login responds with a generic message on bad credentials and runs bcrypt against a dummy hash on unknown users to limit user enumeration
+- Login responds with a generic error on bad credentials and runs bcrypt against a dummy hash on unknown users to limit user enumeration
 - `forgot-password` always returns the same message regardless of whether the email exists
 
 ## Project structure
@@ -79,3 +78,9 @@ In `NODE_ENV !== 'production'`, `forgot-password` returns the raw token in the J
 ├── public/                # Static frontend (HTML/CSS/JS)
 └── data/auth.sqlite       # Created at first run
 ```
+
+## Other branches
+
+- [`main`](https://github.com/ffbilsel/epam-lab1/tree/main) — branch index and overview.
+- [`partial-precision`](https://github.com/ffbilsel/epam-lab1/tree/partial-precision) — Express + SQLite + React/TS (Vite).
+- [`max-precision`](https://github.com/ffbilsel/epam-lab1/tree/max-precision) — Express + SQLite + React/TS + Tailwind.
